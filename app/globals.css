@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-zinc-950 text-zinc-100 antialiased;
+}
+
+.input {
+  @apply w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-orange-500 focus:outline-none;
+}
+
+.card {
+  @apply rounded-xl border border-zinc-800 bg-zinc-900/70 p-4 shadow-sm;
+}
