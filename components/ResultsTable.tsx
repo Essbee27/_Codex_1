@@ -1,10 +1,21 @@
 "use client";
 
+import { useMemo } from "react";
+import { filterAndSortModels } from "@/lib/modelSelectors";
 import { useModelStore } from "@/store/useModelStore";
 
 export function ResultsTable() {
   const loading = useModelStore((s) => s.loading);
-  const rows = useModelStore((s) => s.filteredModels());
+  const scored = useModelStore((s) => s.scored);
+  const providerFilter = useModelStore((s) => s.providerFilter);
+  const capabilityFilter = useModelStore((s) => s.capabilityFilter);
+  const maxPrice = useModelStore((s) => s.maxPrice);
+  const sortBy = useModelStore((s) => s.sortBy);
+
+  const rows = useMemo(
+    () => filterAndSortModels(scored, providerFilter, capabilityFilter, maxPrice, sortBy),
+    [scored, providerFilter, capabilityFilter, maxPrice, sortBy]
+  );
 
   if (loading) {
     return (

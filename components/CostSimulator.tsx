@@ -1,11 +1,22 @@
 "use client";
 
+import { useMemo } from "react";
+import { filterAndSortModels } from "@/lib/modelSelectors";
 import { useModelStore } from "@/store/useModelStore";
 
 export function CostSimulator() {
   const monthlyTokens = useModelStore((s) => s.monthlyTokens);
   const setMonthlyTokens = useModelStore((s) => s.setMonthlyTokens);
-  const models = useModelStore((s) => s.filteredModels());
+  const scored = useModelStore((s) => s.scored);
+  const providerFilter = useModelStore((s) => s.providerFilter);
+  const capabilityFilter = useModelStore((s) => s.capabilityFilter);
+  const maxPrice = useModelStore((s) => s.maxPrice);
+  const sortBy = useModelStore((s) => s.sortBy);
+
+  const models = useMemo(
+    () => filterAndSortModels(scored, providerFilter, capabilityFilter, maxPrice, sortBy),
+    [scored, providerFilter, capabilityFilter, maxPrice, sortBy]
+  );
 
   return (
     <section className="card space-y-4">

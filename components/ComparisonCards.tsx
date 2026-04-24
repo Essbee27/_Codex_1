@@ -1,12 +1,20 @@
 "use client";
 
 import { useMemo } from "react";
+import { filterAndSortModels } from "@/lib/modelSelectors";
 import { useModelStore } from "@/store/useModelStore";
 
 export function ComparisonCards() {
-  const models = useModelStore((s) => s.filteredModels());
+  const scored = useModelStore((s) => s.scored);
+  const providerFilter = useModelStore((s) => s.providerFilter);
+  const capabilityFilter = useModelStore((s) => s.capabilityFilter);
+  const maxPrice = useModelStore((s) => s.maxPrice);
+  const sortBy = useModelStore((s) => s.sortBy);
 
-  const topModels = useMemo(() => models.slice(0, 3), [models]);
+  const topModels = useMemo(() => {
+    const rows = filterAndSortModels(scored, providerFilter, capabilityFilter, maxPrice, sortBy);
+    return rows.slice(0, 3);
+  }, [scored, providerFilter, capabilityFilter, maxPrice, sortBy]);
 
   if (!topModels.length) return null;
 

@@ -2,10 +2,9 @@
 
 import { create } from "zustand";
 import { models } from "@/data/models";
-import { Capability, LlmModel, Provider } from "@/types/model";
 import { scoreModels } from "@/lib/relevance";
-
-type SortBy = "relevance" | "cost";
+import { Capability, Provider } from "@/types/model";
+import { SortBy } from "@/lib/modelSelectors";
 
 interface ModelState {
   query: string;
@@ -23,10 +22,9 @@ interface ModelState {
   setMonthlyTokens: (tokens: number) => void;
   setSortBy: (sortBy: SortBy) => void;
   runSearch: () => Promise<void>;
-  filteredModels: () => Array<{ model: LlmModel; relevanceScore: number }>;
 }
 
-export const useModelStore = create<ModelState>((set, get) => ({
+export const useModelStore = create<ModelState>((set) => ({
   query: "",
   providerFilter: "All",
   capabilityFilter: "All",
@@ -45,21 +43,5 @@ export const useModelStore = create<ModelState>((set, get) => ({
     set({ loading: true });
     await new Promise((resolve) => setTimeout(resolve, 600));
     set((state) => ({ loading: false, scored: scoreModels(state.query) }));
-  },
-  filteredModels: () => {
-    const { scored, providerFilter, capabilityFilter, maxPrice, sortBy } = get();
-
-    const filtered = scored.filter(({ model }) => {
-      const providerMatch = providerFilter === "All" || model.provider === providerFilter;
-      const capabilityMatch = capabilityFilter === "All" || model.capabilities.includes(capabilityFilter);
-      const priceMatch = model.price_per_1k_tokens <= maxPrice;
-      return providerMatch && capabilityMatch && priceMatch;
-    });
-
-    if (sortBy === "cost") {
-      return [...filtered].sort((a, b) => a.model.price_per_1k_tokens - b.model.price_per_1k_tokens);
-    }
-
-    return [...filtered].sort((a, b) => b.relevanceScore - a.relevanceScore);
   }
 }));
