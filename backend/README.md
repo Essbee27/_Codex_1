@@ -1,117 +1,89 @@
-# LLM Compare Backend (Node.js + Express + TypeScript)
+# LLM Compare Backend
 
-Production-ready backend API for LLM model search, model detail retrieval, and monthly cost estimation.
+Independent Express + TypeScript API application under `backend/`.
 
-## Stack
-
-- Node.js + Express + TypeScript
-- Supabase PostgreSQL via `@supabase/supabase-js`
-- Zod request validation
-- Axios adapter for optional enrichment
-- Pino logging with secret redaction
-
-## Architecture
-
-```text
-/src
-  /routes
-  /controllers
-  /services
-  /adapters
-  /repositories
-  /middlewares
-  /utils
-  /config
-```
-
-Separation of concerns:
-- Routes: endpoint definitions only
-- Controllers: HTTP request/response only
-- Services: business logic and scoring
-- Adapters: external API enrichment
-- Repositories: database access only
-
-## API Endpoints
-
-Base prefix: `/v1` (configurable via `API_PREFIX`)
-
-### `GET /v1/health`
-Health check.
-
-### `GET /v1/models/search?query=customer%20support`
-Returns ranked models sorted by `relevance_score`.
-
-Scoring formula:
-
-```text
-relevance_score =
-  (capability_match * 0.5) +
-  (price_score * 0.3) +
-  (latency_score * 0.2)
-```
-
-### `GET /v1/models/:id`
-Returns full model details.
-
-### `POST /v1/cost/estimate`
-Request:
-
-```json
-{
-  "model_id": "gpt-4o",
-  "monthly_tokens": 1000000
-}
-```
-
-Response:
-
-```json
-{
-  "success": true,
-  "data": {
-    "estimated_cost": 5
-  }
-}
-```
-
-## Security
-
-- No hardcoded secrets.
-- Service role key is loaded from environment variables only.
-- `.env.example` includes placeholders.
-- Logs are sanitized with Pino `redact`.
-- No credential values are returned in API responses.
-
-## Setup
-
-1. Copy env template:
+## Install and run
 
 ```bash
-cp .env.example .env
-```
-
-2. Fill values in `.env`:
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-
-3. Install dependencies and run:
-
-```bash
+cd backend
 npm install
 npm run dev
 ```
 
-## Database
+## Registry configuration
 
-Run SQL in `scripts/schema.sql` in Supabase SQL editor.
+This project uses the default npm registry via `backend/.npmrc`:
 
-Seed sample rows:
-
-```bash
-npm run seed
+```ini
+registry=https://registry.npmjs.org/
 ```
 
-## Notes
+## Dependencies
 
-- Adapter enrichment is optional and controlled by `ENRICHMENT_API_BASE_URL` + `ENRICHMENT_API_KEY`.
-- If enrichment fails, the service falls back safely to DB values.
+Runtime dependencies are intentionally limited to:
+
+- `express`
+- `cors`
+- `dotenv`
+- `axios`
+- `zod`
+- `@supabase/supabase-js`
+
+No frontend dependencies are used in backend runtime.
+
+## Scripts
+
+- `npm run dev` → `ts-node-dev --respawn src/index.ts`
+- `npm run build` → compile TypeScript
+- `npm run start` → run compiled app
+- `npm run seed` → seed Supabase models table
+
+## API
+
+Base path defaults to `/v1`.
+
+- `GET /v1/health`
+- `GET /v1/models/search?query=customer%20support`
+- `GET /v1/models/:id`
+- `POST /v1/cost/estimate`
+
+### Response format
+
+Success:
+
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+
+Error:
+
+```json
+{
+  "success": false,
+  "error": {
+    "message": "...",
+    "code": "..."
+  }
+}
+```
+
+## Database fallback behavior
+
+- If Supabase env vars are missing, repository automatically falls back to in-memory mock models.
+- If Supabase query fails at runtime, repository falls back to mock models and continues serving requests.
+- `/v1/health` reports database mode (`connected`, `mock-fallback`, `degraded-fallback`).
+
+## Environment
+
+Copy `.env.example` to `.env` and provide values for:
+
+- `SUPABASE_URL` (optional)
+- `SUPABASE_SERVICE_ROLE_KEY` (optional)
+
+## Database
+
+- schema: `scripts/schema.sql`
+- seed: `scripts/seed-models.ts`
