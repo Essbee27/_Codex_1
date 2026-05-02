@@ -7,26 +7,25 @@ export type Capability =
   | "translation"
   | "agents";
 
-export type Provider =
-  | "OpenAI"
-  | "Hugging Face"
-  | "Google Vertex AI"
-  | "Amazon Bedrock"
-  | "Azure OpenAI";
-
 export interface LlmModel {
   id: string;
   name: string;
-  provider: Provider;
-  capabilities: Capability[];
+  provider: string;
+  capabilities: string[];
   price_per_1k_tokens: number;
   context_window: number;
   latency: number;
-  description: string;
   documentation_url: string;
 }
 
-export interface ScoredModel {
+export interface RankedModel {
   model: LlmModel;
-  relevanceScore: number;
+  score: number;
+  explanation: string;
+  strengths: Array<"cheap" | "fast" | "best match">;
+  score_breakdown: {
+    capability: number;
+    price: number;
+    latency: number;
+  };
 }

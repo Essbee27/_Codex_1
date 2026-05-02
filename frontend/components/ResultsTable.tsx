@@ -1,21 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
-import { filterAndSortModels } from "@/lib/modelSelectors";
 import { useModelStore } from "@/store/useModelStore";
 
 export function ResultsTable() {
   const loading = useModelStore((s) => s.loading);
-  const scored = useModelStore((s) => s.scored);
-  const providerFilter = useModelStore((s) => s.providerFilter);
-  const capabilityFilter = useModelStore((s) => s.capabilityFilter);
-  const maxPrice = useModelStore((s) => s.maxPrice);
-  const sortBy = useModelStore((s) => s.sortBy);
-
-  const rows = useMemo(
-    () => filterAndSortModels(scored, providerFilter, capabilityFilter, maxPrice, sortBy),
-    [scored, providerFilter, capabilityFilter, maxPrice, sortBy]
-  );
+  const error = useModelStore((s) => s.error);
+  const rows = useModelStore((s) => s.filteredModels());
 
   if (loading) {
     return (
@@ -29,10 +19,14 @@ export function ResultsTable() {
     );
   }
 
+  if (error) {
+    return <section className="card py-8 text-center text-red-400">{error}</section>;
+  }
+
   if (!rows.length) {
     return (
       <section className="card py-12 text-center text-zinc-400">
-        No models matched your filters. Try widening provider, capability, or price settings.
+        No models matched your filters. Try a different query or widen provider, capability, or price settings.
       </section>
     );
   }
@@ -48,10 +42,12 @@ export function ResultsTable() {
             <th className="pb-3">Price / 1k</th>
             <th className="pb-3">Context</th>
             <th className="pb-3">Latency</th>
+            <th className="pb-3">Score</th>
+            <th className="pb-3">Explanation</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-800">
-          {rows.map(({ model }) => (
+          {rows.map(({ model, score, explanation }) => (
             <tr key={model.id}>
               <td className="py-4 font-medium text-zinc-100">{model.name}</td>
               <td className="py-4 text-zinc-300">{model.provider}</td>
@@ -59,6 +55,8 @@ export function ResultsTable() {
               <td className="py-4 text-orange-400">${model.price_per_1k_tokens.toFixed(4)}</td>
               <td className="py-4 text-zinc-300">{model.context_window.toLocaleString()}</td>
               <td className="py-4 text-zinc-300">{model.latency} ms</td>
+              <td className="py-4 text-zinc-200">{score.toFixed(3)}</td>
+              <td className="py-4 text-zinc-400">{explanation}</td>
             </tr>
           ))}
         </tbody>

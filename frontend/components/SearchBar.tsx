@@ -1,12 +1,17 @@
 "use client";
 
-import { FormEvent } from "react";
+import { FormEvent, useEffect } from "react";
 import { useModelStore } from "@/store/useModelStore";
 
 export function SearchBar() {
   const query = useModelStore((s) => s.query);
   const setQuery = useModelStore((s) => s.setQuery);
   const runSearch = useModelStore((s) => s.runSearch);
+  const loading = useModelStore((s) => s.loading);
+
+  useEffect(() => {
+    void runSearch();
+  }, [runSearch]);
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -28,9 +33,10 @@ export function SearchBar() {
         />
         <button
           type="submit"
-          className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-orange-400"
+          disabled={loading}
+          className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-orange-400 disabled:opacity-60"
         >
-          Search models
+          {loading ? "Searching..." : "Search models"}
         </button>
       </div>
     </form>
